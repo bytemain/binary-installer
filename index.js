@@ -52,21 +52,26 @@ class Binary {
       rmrf(this.installDirectory);
     }
   }
-  installFromGitHubRelease(owner, repo, releaseTag, proxyUrl) {
+  configureUrl(url) {
+    this.url = url;
+  }
+  configureGitHubRelease(owner, repo, releaseTag, proxyUrl) {
     const platform = getPlatform();
     let url = `https://github.com/${owner}/${repo}/releases/download/${releaseTag}/${this.name}-${platform}.tar.gz`;
     if (proxyUrl) {
       url = `${proxyUrl}/${url}`;
     }
-
-    return this.install({ url });
+    this.url = url;
   }
   install(fetchOptions, suppressLogs = false) {
-    const { url } = fetchOptions;
+    const { url } = this;
+    if (!url) {
+      error(`You must configure the download url of ${this.name} binary`);
+    }
     try {
       new URL(url);
     } catch (e) {
-      error(e);
+      error('this.url: ' + e);
     }
 
     if (existsSync(this.installDirectory)) {
@@ -77,7 +82,7 @@ class Binary {
       console.error(`Downloading binary from ${url}`);
     }
 
-    return axios({ ...fetchOptions, responseType: 'stream' })
+    return axios({ ...fetchOptions, url: this.url, responseType: 'stream' })
       .then((res) => {
         return new Promise((resolve, reject) => {
           const sink = res.data.pipe(
@@ -99,7 +104,10 @@ class Binary {
 
   async run() {
     if (!this.exists()) {
-      error(`Binary not found at ${this.binaryPath}. Please install it first.`)
+      console.error(
+        `Binary not found at ${this.binaryPath}. Try install first...`
+      );
+      await this.install();
     }
     const [, , ...args] = process.argv;
 
