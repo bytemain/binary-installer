@@ -63,7 +63,11 @@ class Binary {
     }
     this.url = url;
   }
-  install(fetchOptions, suppressLogs = false) {
+  install(fetchOptions, options) {
+    const { allowReinstall, suppressLogs } = options || {
+      allowReinstall: true,
+      suppressLogs: false
+    };
     const { url } = this;
     if (!url) {
       error(`You must configure the download url of ${this.name} binary`);
@@ -74,9 +78,16 @@ class Binary {
       error('this.url: ' + e);
     }
 
-    if (existsSync(this.installDirectory)) {
-      rmrf(this.installDirectory);
+    if (this.exists()) {
+      if (allowReinstall) {
+        console.log(`\n${this.name} is already installed, reinstalling...`);
+        this.uninstall();
+      } else {
+        console.log(`\n${this.name} is already installed, skipping...`);
+        return;
+      }
     }
+
     mkdirSync(this.installDirectory, { recursive: true });
     if (!suppressLogs) {
       console.error(`Downloading binary from ${url}`);
