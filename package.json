@@ -1,0 +1,17 @@
+{
+  "name": "binary-installer",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:bytemain/binary-installer.git",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "axios": "^0.26.1",
+    "tar": "^6.1.11"
+  }
+}
